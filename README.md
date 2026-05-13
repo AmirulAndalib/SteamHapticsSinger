@@ -1,14 +1,12 @@
 # Steam Haptics Singer
 
-This project is a fork of [Roboron3042's SteamControllerSinger](https://github.com/Roboron3042/SteamControllerSinger) which is a fork of [Pila's SteamControllerSinger](https://gitlab.com/Pilatomic/SteamControllerSinger). It attempts to add Deck compatibility but is, at the moment, not that good.
-
-I gotta say, I'm no expert and barely know how this thing works, but I hope to actually make some improvements if possible :).
+This project aims to be a continuation of SteamControllerSinger (forked from [Roboron3042's fork](https://github.com/Roboron3042/SteamControllerSinger), originally by [Pila](https://gitlab.com/Pilatomic/SteamControllerSinger)) by fixing issues, adding features, and, most notably, Steam Deck and Steam Controller (2026) support.
 
 ## How To
 
-1. Turn on your Steam Controller or Steam Deck
-2. Drag the midi file onto steam-haptics-singer executable
-3. When prompted, press ENTER
+1. Turn on your Steam Controller (2015 or 2026) or Steam Deck
+2. Drag the MIDI file onto the steam-haptics-singer executable
+3. If prompted, press Enter
 4. Enjoy!
 
 ### Where can I find midi songs?
@@ -23,12 +21,12 @@ Songs ready to play can be found in the original guy's [personal collection](htt
 	  -p	Repeat song, plays again after ending
 	  -y	Legacy playback, forces usage of the old Steam Controller haptic instruction instead of the new one (causes issues)
 
-### Midi files tips:
+### MIDI files tips:
 
-Midi files may need to be edited with a software such as [MidiEditor](https://www.midieditor.org/) to be correctly played with Steam Haptics Singer following the next tips:
+MIDI files may need to be edited with a software such as [MidiEditor](https://www.midieditor.org/) to be correctly played with Steam Haptics Singer following the next tips:
 
-* Notes from midi channel 0 are played on right haptic
-* Notes from midi channel 1 are played on left haptic
+* Notes from MIDI channel 0 are played on right haptic
+* Notes from MIDI channel 1 are played on left haptic
 * Notes from others channels are ignored
 * **Avoid multiple notes active at the same time on the same channel**, since haptic actuators can only play one note at the time.
 
@@ -51,6 +49,13 @@ If you go the steam-runtime route, make sure to use sniper as scout is outdated.
 
 
 ## CHANGELOG
+
+[v1.10.1]
+* Added wired Steam Controller (2026) support, wireless support through puck and bluetooth is still WIP
+* The original Steam Controller has been renamed to Steam Controller (2015)
+* Controllers now have their own type in the code
+* Temporarily removed legacy parameter
+* Notes now play at full volume (except the new Steam Controller, to prevent distortion)
 
 [v1.10]
 * Implemented Steam Deck-specific haptic command. This now makes songs play correctly on it.

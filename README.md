@@ -51,7 +51,7 @@ If you go the steam-runtime route, make sure to use sniper as scout is outdated.
 ## Changelog
 
 [v1.10.2]
-* Added Steam Puck support, still not fully tested but should work
+* Added Steam Puck support
 * Steam Dongle connects but still doesn't work
 * The haptics are swapped on the Steam Controller (2026) to match the 2015 and Steam Deck
 * Gain/volume is now back at medium level as max might cause damage (#11), will need to be tested more

@@ -63,7 +63,12 @@ bool SteamController_Open(SteamControllerInfos* controller){
 
 	libusb_device_handle* dev_handle;
 	//Open Steam Controller device
-	if((controller->dev_handle = libusb_open_device_with_vid_pid(NULL, 0x28DE, 0x1102)) != NULL){ // Wired Steam Controller (2015)
+	if((controller->dev_handle = libusb_open_device_with_vid_pid(NULL, 0x28DE, 0x1101)) != NULL){ // A Steam Controller
+		cout<<"Found a Steam Controller"<<endl;
+		controller->interfaceNum = 2;
+		controller->type = ControllerType::Original;
+	}
+	else if((controller->dev_handle = libusb_open_device_with_vid_pid(NULL, 0x28DE, 0x1102)) != NULL){ // Wired Steam Controller (2015)
 		cout<<"Found wired Steam Controller (2015)"<<endl;
 		controller->interfaceNum = 2;
 		controller->type = ControllerType::Original;

@@ -217,7 +217,8 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 		
 		r = hid_write(controller->hid_handle,dataBlob,65);
 		if(r < 0) {
-			cout<<"Command Error "<<hid_error(controller->hid_handle)<< endl;
+			const wchar_t* error_msg = hid_error(controller->hid_handle);
+			wcout<<"Command Error "<<error_msg<< endl;
 			exit(0);
 		}
 		break;

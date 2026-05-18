@@ -1,7 +1,5 @@
-<img align="left" height="90" alt="shs_icon_new" src="https://github.com/user-attachments/assets/0c7629e8-b289-47d1-b0f1-560037f4139e" />
-
 # Steam Haptics Singer
-<img align="left" height="90" alt="shs_icon" src="https://github.com/user-attachments/assets/39023623-ca33-4917-bc82-20c50d0ba8a6" /><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<img align="left" height="90" alt="shs_icon_new" src="https://github.com/user-attachments/assets/0c7629e8-b289-47d1-b0f1-560037f4139e" />
 <svg
    viewBox="0 0 36 36"
    fill="none"

@@ -404,7 +404,7 @@ void playSong(SteamControllerInfos* controller,const ParamsStruct params){
 		SteamHaptics_PlayNote(&steamController1,i,NOTE_STOP,0); //Wait, this actually references the controller directly, why????????
 	}
 	
-	cout <<endl<< "Playback completed " << endl;
+	cout <<endl<< "Playback completed, press any key to exit" << endl;
 }
 
 
@@ -480,10 +480,14 @@ void abortSignal(int) {
 void abortPlaying(int){
 	if(exitFlag) {
 		for(int i = 0 ; i < CHANNEL_COUNT ; i++){
-			SteamHaptics_PlayNote(&steamController1,i,NOTE_STOP,0); //Wait, this actually references the controller directly, why????????
+			SteamHaptics_PlayNote(&steamController1,i,NOTE_STOP,0);
 		}
-		SteamController_Close(&steamController1);
 	}
+
+	SteamController_Close(&steamController1);
+
+	libusb_exit(NULL);
+	hid_exit();
 }
 
 int main(int argc, char** argv)
@@ -543,13 +547,6 @@ int main(int argc, char** argv)
 	do{
 		playSong(&steamController1,params);
 	}while(params.repeatSong);
-
-
-	//Releasing access to Steam Controller
-	SteamController_Close(&steamController1);
-
-	libusb_exit(NULL);
-	hid_exit();
 
 	cin.ignore();
 	return 0;

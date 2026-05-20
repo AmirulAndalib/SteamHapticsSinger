@@ -115,7 +115,7 @@ bool SteamController_Open(SteamControllerInfos* controller){
 		if (!tritonLimit) channelCount = 4;
 	}
 	else if((controller->hid_handle = open_steam_controller_hid(STEAM_PUCK)) != NULL) { // Steam Puck
-		cout<<"Found Steam Puck, attempting to use first Steam Controller (2026)"<<endl;
+		cout<<"Found Steam Puck, using first Steam Controller (2026)"<<endl;
 		controller->type = ControllerType::Triton;
 		if (!tritonLimit) channelCount = 4;
 	}

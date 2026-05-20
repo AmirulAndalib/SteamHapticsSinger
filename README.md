@@ -115,6 +115,12 @@ You will need libusb(-dev), hidapi-hidraw, and pkgconf. If you have them, just t
 
 ## Changelog
 
+[v1.11.3]
+* Cleaned up enumeration code for finding Steam Controller (2026)
+* Now enumerate through wired Steam Controller (2026), should fix issues with not connecting
+* Program will now attempt to stop playback when closed, regardless of how
+* Errors now wait for input before closing
+
 [v1.11.2]
 * The program now looks through the connected devices on a Steam Puck to find the first Steam Controller (2026)
 * Steam Controller (2026) is now handled by HIDAPI

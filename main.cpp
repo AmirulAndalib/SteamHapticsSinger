@@ -174,7 +174,9 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 	double period;
 	uint16_t periodCommand;
 	uint16_t repeatCommand;
-	uint16_t gainCommand;
+	//uint16_t gainCommand;
+	
+	int haptic;
 
 	switch(controller->type) {
 	case ControllerType::Original: //Steam Controller (2015) Playback
@@ -204,19 +206,18 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 		break;
 
 	case ControllerType::Triton: //Steam Controller (2026) Playback
-
+		
+		haptic = (tritonSwap) ?
+				 ((channel < 2) ? !channel : !(channel-2)+3) :
+				 ((channel < 2) ? !channel+3 : !(channel-2));	
 		if (note == NOTE_STOP) {
 			//This prevents the controller from rebooting when using rumble motors and drifting out of tune
 			dataBlob[0] = 0x82;
-			dataBlob[1] = (tritonSwap) ?
-						  ((channel < 2) ? channel : !(channel-2)+3) :
-						  ((channel < 2) ? !channel+3 : channel-2);			  
+			dataBlob[1] = haptic;
 			//dataBlob[1] = ((channel < 2) != tritonSwap) ? !channel+3 : channel-2;
 		} else {
 			dataBlob[0] = 0x83;
-			dataBlob[1] = (tritonSwap) ?
-						  ((channel < 2) ? !channel : !(channel-2)+3) :
-						  ((channel < 2) ? !channel+3 : !(channel-2));
+			dataBlob[1] = haptic;
 			//dataBlob[1] = ((channel < 2) != tritonSwap) ? !channel+3 : !(channel-2);
 			dataBlob[2] = (directVel) ? (velocity * 255) / 127 - 128 : 0xFE;
 			dataBlob[3] = (int)frequency % 0xFF;

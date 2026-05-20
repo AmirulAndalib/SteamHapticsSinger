@@ -65,6 +65,7 @@ NOTE: For Steam Controller (2015), make sure the BLE firmware is NOT installed.
 
 1. [Download the latest release](https://github.com/CrazyCritic89/SteamHapticsSinger/releases) (the Linux build is the one with no file extension)
 2. Turn on your Steam Controller (2015 or 2026) or Steam Deck
+3. Drag and drop MIDI file onto the program. On Linux, you might need to make it executable first by going into the properties. If this doesn't work, then try:
 
 #### On Linux
 1. Right click inside the folder

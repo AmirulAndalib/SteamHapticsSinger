@@ -61,7 +61,7 @@ I have made a small [Discord server](https://discord.gg/TWpvAxX5GW) for sharing 
 
 NOTE: For Steam Controller (2015), make sure the BLE firmware is NOT installed.
 
-If you'd like to support what I do, you can find me on [Kofi](https://ko-fi.com/crazycritic89)!
+[If you'd like to support what I do, you can find me on Kofi!](https://ko-fi.com/crazycritic89)
 
 ## How To
 

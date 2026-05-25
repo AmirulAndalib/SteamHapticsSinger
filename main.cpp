@@ -49,6 +49,7 @@ bool tritonLimit = false;
 bool tritonSwap = false;
 bool exitFlag = false;
 int channelCount = 2;
+int gainModifier[5] = {0};
 
 enum class ControllerType {
 	None,
@@ -214,12 +215,10 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 			//This prevents the controller from rebooting when using rumble motors and drifting out of tune
 			dataBlob[0] = 0x82;
 			dataBlob[1] = haptic;
-			//dataBlob[1] = ((channel < 2) != tritonSwap) ? !channel+3 : channel-2;
 		} else {
 			dataBlob[0] = 0x83;
 			dataBlob[1] = haptic;
-			//dataBlob[1] = ((channel < 2) != tritonSwap) ? !channel+3 : !(channel-2);
-			dataBlob[2] = (directVel) ? (velocity * 255) / 127 - 128 : 0xFE;
+			dataBlob[2] = ((directVel) ? (velocity * 255) / 127 - 128 : 0xFE) + gainModifier[haptic];
 			dataBlob[3] = (int)frequency % 0xFF;
 			dataBlob[4] = (int)frequency / 0xFF;
 			dataBlob[5] = 0xFF;
@@ -240,7 +239,7 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 		dataBlob[0] = 0xEA;
 		dataBlob[2] = !channel; //Swap haptics to match 2015
 		dataBlob[3] = 0x03; 
-		dataBlob[5] = (directVel) ? (velocity * 255) / 127 - 128 : 0x00;
+		dataBlob[5] = ((directVel) ? (velocity * 255) / 127 - 128 : 0x00) + gainModifier[!channel];
 		dataBlob[6] = (int)frequency % 0xFF;
 		dataBlob[7] = (int)frequency / 0xFF;
 		dataBlob[8] = duration % 0xFF;
@@ -413,29 +412,41 @@ void playSong(SteamControllerInfos* controller,const ParamsStruct params){
 
 bool parseArguments(int argc, char** argv, ParamsStruct* params){
 	int c;
-	while ( (c = getopt(argc, argv, "d:i:pets")) != -1) {
-		unsigned long int value;
+	while ( (c = getopt(argc, argv, "l:r:n:m:d:i:pets")) != -1) {
+		int32_t value;
 		switch(c){
-		/*case 'l':
-			value = strtoul(optarg,NULL,10);
-			if(value <= 255 && value > 0){
-				params->leftGain = value;
+		case 'l':
+			value = strtol(optarg,NULL,10);
+			if(value >= -64 && value <= 63){
+				gainModifier[0] = value;
 			}
 			break;
 		case 'r':
-			value = strtoul(optarg,NULL,10);
-			if(value <= 255 && value > 0){
-				params->rightGain = value;
+			value = strtol(optarg,NULL,10);
+			if(value >= -64 && value <= 63){
+				gainModifier[1] = value;
 			}
-			break;*/
+			break;
+		case 'n':
+			value = strtol(optarg,NULL,10);
+			if(value >= -64 && value <= 63){
+				gainModifier[3] = value;
+			}
+			break;
+		case 'm':
+			value = strtol(optarg,NULL,10);
+			if(value >= -64 && value <= 63){
+				gainModifier[4] = value;
+			}
+			break;
 		case 'd':
-			value = strtoul(optarg,NULL,10);
+			value = strtol(optarg,NULL,10);
 			if(value >= LIBUSB_LOG_LEVEL_NONE && value <= LIBUSB_LOG_LEVEL_DEBUG){
 				params->libusbDebugLevel = value;
 			}
 			break;
 		case 'i':
-			value = strtoul(optarg,NULL,10);
+			value = strtol(optarg,NULL,10);
 			if(value <= 1000000 && value > 0){
 				params->intervalUSec = value;
 			}
@@ -477,7 +488,7 @@ void abortSignal(int) {
 	exit(1);
 }
 
-void abortPlaying(int){
+void abortPlaying(){
 	if(exitFlag) {
 		for(int i = 0 ; i < CHANNEL_COUNT ; i++){
 			SteamHaptics_PlayNote(&steamController1,i,NOTE_STOP,0);
@@ -492,20 +503,22 @@ void abortPlaying(int){
 
 int main(int argc, char** argv)
 {
-	cout <<"Steam Haptics Singer by Crazy, Steam Controller Singer by Pila"<<endl;
+	cout <<"Steam Haptics Singer v1.12 by Crazy, based off of Steam Controller Singer by Pila"<<endl;
 
 	ParamsStruct params;
 	params.intervalUSec = DEFAULT_INTERVAL_USEC;
 	params.libusbDebugLevel = LIBUSB_LOG_LEVEL_NONE;
 	params.repeatSong = false;
 	params.midiSong = "\0";
-	//params.leftGain = DEFAULT_GAIN;
-	//params.rightGain = DEFAULT_GAIN;
-
 
 	//Parse arguments
 	if(!parseArguments(argc, argv, &params)){
 		cout << "Usage: steam-haptics-singer [-p] [-y] [-d DEBUG_LEVEL] [-i INTERVAL] MIDI_FILE\n"
+			  "\nThere must be no space for negative gain modifiers"
+			  "\n  -lMODIFIER		Left trackpad gain modifier"
+			  "\n  -rMODIFIER		Right trackpad gain modifier"
+			  "\n  -nMODIFIER		Left rumble gain modifier"
+			  "\n  -mMODIFIER		Right rumble gain modifier "
 			  "\n  -i INTERVAL		Player sleep interval (in microseconds). Lower generally means better song fidelity, but higher cpu usage, and at some point going lower won't improve any more. Default value is 10000"
 			  "\n  -d DEBUG_LEVEL	Libusb debug level. Default is 0, no debug output. max is 4, max verbosity output"
 		      "\n  -p	Repeat song, plays again after ending"

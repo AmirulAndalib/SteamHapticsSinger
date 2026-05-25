@@ -159,6 +159,8 @@ bool SteamController_Open(SteamControllerInfos* controller){
 				break;
 		}
 	}
+	file1.close();
+	file2.close();
 
 	//If dev_handle is NULL, it's using HIDAPI so skip this
 	if(controller->dev_handle != NULL) {

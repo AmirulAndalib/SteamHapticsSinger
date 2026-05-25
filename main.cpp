@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include <cstring>
 
@@ -49,6 +50,7 @@ bool tritonSwap = false;
 bool exitFlag = false;
 int channelCount = 2;
 int gainModifier[5] = {0};
+bool noGainCurve = false;
 
 enum class ControllerType {
 	None,
@@ -128,6 +130,35 @@ bool SteamController_Open(SteamControllerInfos* controller){
 		std::cout<<"No device found"<<std::endl;
 		std::cin.ignore();
 		return false;
+	}
+
+	//Load gain curves
+	std::ifstream file1,file2;
+	if (!noGainCurve) {
+		switch (controller->type) {
+			case ControllerType::Triton:
+				file1.open("gaincurve/Triton_Trackpads.txt");
+				file2.open("gaincurve/Triton_Rumble.txt");
+				if(!file1 || !file2) {
+					std::cout << "Could not open gain curve, defaulting to 0" << std::endl;
+					break;
+				}
+				for (int i = 0; i < 128; ++i) {
+					file1 >> gainCurve[i];
+					file2 >> gainCurveRb[i];
+				}
+				break;
+			case ControllerType::Jupiter:
+				file1.open("gaincurve/Jupiter.txt");
+				if(!file1) {
+					std::cout << "Could not open gain curve, defaulting to 0" << std::endl;
+					break;
+				}
+				for (int i = 0; i < 128; ++i) {
+					file1 >> gainCurve[i];
+				}
+				break;
+		}
 	}
 
 	//If dev_handle is NULL, it's using HIDAPI so skip this
@@ -457,8 +488,7 @@ bool parseArguments(int argc, char** argv, ParamsStruct* params){
 			directVel = true;
 			break;
 		case 'u':
-			memset(gainCurve, DEFAULT_GAIN, 128);
-			memset(gainCurveRb, DEFAULT_GAIN, 128);
+			noGainCurve = true;
 			break;
 		case 't':
 			tritonLimit = true;
@@ -516,14 +546,14 @@ int main(int argc, char** argv)
 
 	//Parse arguments
 	if(!parseArguments(argc, argv, &params)){
-		std::cout << "Usage: steam-haptics-singer [-p] [-y] [-d DEBUG_LEVEL] [-i INTERVAL] MIDI_FILE\n"
+		std::cout << "Usage: steam-haptics-singer [-lMODIFIER] [-rMODIFIER] [-nMODIFIER] [-mMODIFIER] [-iINTERVAL] [-dDEBUG_LEVEL] [-p] [-v] [-u] [-t] [-s] MIDI_FILE\n"
 			  "\nThere must be no space for negative gain modifiers"
 			  "\n  -lMODIFIER		Left trackpad gain modifier"
 			  "\n  -rMODIFIER		Right trackpad gain modifier"
 			  "\n  -nMODIFIER		Left rumble gain modifier"
 			  "\n  -mMODIFIER		Right rumble gain modifier "
-			  "\n  -i INTERVAL		Player sleep interval (in microseconds). Lower generally means better song fidelity, but higher cpu usage, and at some point going lower won't improve any more. Default value is 10000"
-			  "\n  -d DEBUG_LEVEL	Libusb debug level. Default is 0, no debug output. max is 4, max verbosity output"
+			  "\n  -iINTERVAL		Player sleep interval (in microseconds). Lower generally means better song fidelity, but higher cpu usage, and at some point going lower won't improve any more. Default value is 10000"
+			  "\n  -dDEBUG_LEVEL		Libusb debug level. Default is 0, no debug output. Max is 4, max verbosity output"
 		      "\n  -p	Repeat song, plays again after ending"
 			  "\n  -v 	Direct velocity to gain control, the MIDI file will set the gain"
 			  "\n  -u	No gain curve, all notes use (signed) 0x00 gain"

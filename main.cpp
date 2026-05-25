@@ -43,7 +43,6 @@ struct ParamsStruct{
 };
 
 //TEMPORARY, move to ParamsStruct and find a way to reference within playback function
-bool legacyInst = false;
 bool directVel = false;
 bool tritonLimit = false;
 bool tritonSwap = false;
@@ -496,9 +495,6 @@ bool parseArguments(int argc, char** argv, ParamsStruct* params){
 		case 's':
 			tritonSwap = true;
 			break;
-		// case 'y':
-		// 	legacyInst = true;
-		// 	break;
 		case '?':
 			return false;
 			break;

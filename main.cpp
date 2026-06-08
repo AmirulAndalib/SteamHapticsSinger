@@ -350,7 +350,7 @@ void playSong(SteamControllerInfos* controller,const ParamsStruct params){
 		return;
 	}
 	
-	if (strstr(params.midiSong,"dv")) {
+	if (strstr(params.midiSong,"_dv")) {
         std::cout << "Found \"dv\" in file name, assuming direct velocity to gain control" << std::endl;
 		directVel = true;
     }

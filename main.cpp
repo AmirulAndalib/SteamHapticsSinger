@@ -238,10 +238,13 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 		break;
 
 	case ControllerType::Triton: //Steam Controller (2026) Playback
-		
-		haptic = (tritonSwap) ?
-				 ((channel < 2) ? !channel : !(channel-2)+3) :
-				 ((channel < 2) ? !channel+3 : !(channel-2));	
+
+		//Swap channels to match Steam Controller (2015)
+		haptic = channel ^ 1;
+		//Swap trackpad and rumble if wanted
+		haptic = tritonSwap ? haptic ^ 2;
+		//Make range match what command expects (0,1,2,3) -> (0,1,3,4)
+		haptic = haptic + (haptic >> 1);
 		if (note == NOTE_STOP) {
 			//This prevents the controller from rebooting when using rumble motors and drifting out of tune
 			dataBlob[0] = 0x82;

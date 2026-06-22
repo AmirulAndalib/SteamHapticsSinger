@@ -207,7 +207,7 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 
 	int r;
 
-	double period;
+	//double period;
 	uint16_t periodCommand;
 	//uint16_t repeatCommand;
 	//uint16_t gainCommand;
@@ -226,8 +226,8 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 			dataBlob[2] = channel;
 			dataBlob[8] = 0x80;
 		} else {
-			period = 1.0 / frequency;
-			periodCommand = period * STEAM_CONTROLLER_MAGIC_PERIOD_RATIO; //Reminder to check if the Steam Controller tuning lines up with the Deck.
+			//period = 1.0 / frequency;
+			periodCommand = STEAM_CONTROLLER_MAGIC_PERIOD_RATIO / frequency; //Reminder to check if the Steam Controller tuning lines up with the Deck.
 			dataBlob[0] = 0x8F;
 			dataBlob[2] = channel;
 			dataBlob[3] = periodCommand % 0xFF;

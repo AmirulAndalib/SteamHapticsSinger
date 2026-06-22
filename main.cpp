@@ -201,16 +201,15 @@ void SteamController_Close(SteamControllerInfos* controller){
 //Steam Haptics Playblack
 int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int note, int velocity){
 	if (channel > 1 && controller->type != ControllerType::Triton) return 1;
-	unsigned char dataBlob[65] = {0};
+	unsigned char dataBlob[64] = {0};
 	
 	double frequency = midiFrequency[note];
-	uint16_t duration = (note == NOTE_STOP) ? 0x0000 : 0x7fff;
 
 	int r;
 
 	double period;
 	uint16_t periodCommand;
-	uint16_t repeatCommand;
+	//uint16_t repeatCommand;
 	//uint16_t gainCommand;
 	
 	int haptic;
@@ -220,21 +219,27 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 	switch(controller->type) {
 	case ControllerType::Original: //Steam Controller (2015) Playback
 
-		period = 1.0 / frequency;
-		periodCommand = period * STEAM_CONTROLLER_MAGIC_PERIOD_RATIO; //Reminder to check if the Steam Controller tuning lines up with the Deck.
-		repeatCommand = (note == NOTE_STOP) ? 0x0000 : 0x7fff;
+		//repeatCommand = (note == NOTE_STOP) ? 0x0000 : 0x7fff;
 		//gainCommand = (directVel) ? (velocity * 65535) / 127 : 0x0000; //Doesn't work
-
-		dataBlob[0] = 0x8F;
-		dataBlob[2] = channel;
-		dataBlob[3] = periodCommand % 0xFF;
-		dataBlob[4] = periodCommand / 0xFF;
-		dataBlob[5] = periodCommand % 0xFF;
-		dataBlob[6] = periodCommand / 0xFF;
-		dataBlob[7] = repeatCommand % 0xFF;
-		dataBlob[8] = repeatCommand / 0xFF;
-		//dataBlob[9] = 0x00;
-		//dataBlob[10]= 0x00;
+		if (note == NOTE_STOP) {
+			dataBlob[0] = 0x8F;
+			dataBlob[2] = channel;
+			dataBlob[8] = 0x80;
+		} else {
+			period = 1.0 / frequency;
+			periodCommand = period * STEAM_CONTROLLER_MAGIC_PERIOD_RATIO; //Reminder to check if the Steam Controller tuning lines up with the Deck.
+			dataBlob[0] = 0x8F;
+			dataBlob[2] = channel;
+			dataBlob[3] = periodCommand % 0xFF;
+			dataBlob[4] = periodCommand / 0xFF;
+			dataBlob[5] = periodCommand % 0xFF;
+			dataBlob[6] = periodCommand / 0xFF;
+			dataBlob[7] = 0xFF;
+			dataBlob[8] = 0x7F;
+			//dataBlob[9] = 0x00;
+			//dataBlob[10]= 0x00;
+		}
+		
 		r = libusb_control_transfer(controller->dev_handle,0x21,9,0x0300,controller->interfaceNum,dataBlob,64,1000);
 		if(r < 0) {
 			std::cout<<"\nCommand Error "<<libusb_error_name(r)<<std::endl;
@@ -252,21 +257,15 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 		if (!tritonSwap) haptic = haptic ^ 2;
 		//Make range match what command expects (0,1,2,3) -> (0,1,3,4)
 		haptic = haptic + (haptic >> 1);
-		//Get frequency needed depending on haptic
-		//freq = (haptic < 2) ? midiFrequencyTr[note] : midiFrequencyRb[note];
-		if (haptic > 2) {
-			freq = midiFrequencyRb[note];
-			gain = gainCurveRb[note];
-		} else {
-			freq = midiFrequencyTr[note];
-			gain = gainCurveTr[note];
-		}
 		if (note == NOTE_STOP) {
-			//This prevents the controller from rebooting when using rumble motors and drifting out of tune
-			dataBlob[0] = 0x82;
+			dataBlob[0] = 0x83;
 			dataBlob[1] = haptic;
-			//Attempt to get rid of the clicking
+			dataBlob[2] = 0x80;
+			dataBlob[6] = 0x80;
 		} else {
+			//Get frequency and gain needed depending on haptic
+			freq = (haptic > 2) ? midiFrequencyRb[note] : midiFrequencyTr[note];
+			gain = (haptic > 2) ? gainCurveRb[note] : gainCruveTr[note];
 			dataBlob[0] = 0x83;
 			dataBlob[1] = haptic;
 			dataBlob[2] = ((directVel) ? (velocity * 255) / 127 - 128 : gain) + gainModifier[haptic];
@@ -276,7 +275,7 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 			dataBlob[6] = 0x7F;
 		}
 		
-		r = hid_write(controller->hid_handle,dataBlob,65);
+		r = hid_write(controller->hid_handle,dataBlob,64);
 		if(r < 0) {
 			wprintf(L"\nCommand Error %ls\n", hid_error(controller->hid_handle));
 			exitFlag = false;
@@ -286,16 +285,25 @@ int SteamHaptics_PlayNote(SteamControllerInfos* controller, int channel, int not
 		break;
 
 	case ControllerType::Jupiter: //Steam Deck Playback
-	
-		freq = midiFrequencyDk[note];
-		dataBlob[0] = 0xEA;
-		dataBlob[2] = !channel; //Swap haptics to match 2015
-		dataBlob[3] = 0x03; 
-		dataBlob[5] = ((directVel) ? (velocity * 255) / 127 - 128 : gainCurveDk[note]) + gainModifier[!channel];
-		dataBlob[6] = freq % 0xFF;
-		dataBlob[7] = freq / 0xFF;
-		dataBlob[8] = duration % 0xFF;
-		dataBlob[9] = duration / 0xFF;
+
+		if (note == NOTE_STOP) {
+			dataBlob[0] = 0xEA;
+			dataBlob[2] = !channel;
+			dataBlob[3] = 0x03;
+			dataBlob[5] = 0x80;
+			dataBlob[9] = 0x80;
+		} else {
+			freq = midiFrequencyDk[note];
+			dataBlob[0] = 0xEA;
+			dataBlob[2] = !channel; //Swap haptics to match 2015
+			dataBlob[3] = 0x03; 
+			dataBlob[5] = ((directVel) ? (velocity * 255) / 127 - 128 : gainCurveDk[note]) + gainModifier[!channel];
+			dataBlob[6] = freq % 0xFF;
+			dataBlob[7] = freq / 0xFF;
+			dataBlob[8] = 0xFF;
+			dataBlob[9] = 0x7F;
+		}
+
 		r = libusb_control_transfer(controller->dev_handle,0x21,9,0x0300,2,dataBlob,64,1000);
 		if(r < 0) {
 			std::cout<<"\nCommand Error "<<libusb_error_name(r)<<std::endl;
@@ -442,8 +450,9 @@ void playSong(SteamControllerInfos* controller,const ParamsStruct params){
 			int8_t eventNote = NOTE_STOP;
 			int8_t eventVel  = 0;
 			if(MidiFileEvent_isNoteStartEvent(selectedEvent)){
-				//Send note stop before playing to prevent Steam Controller (2026) rebooting when using motors
-				SteamHaptics_PlayNote(controller,currentChannel,NOTE_STOP,0);
+				//NO LONGER NEEDED: Send note stop before playing to prevent Steam Controller (2026) rebooting when using motors
+				//Check to see if drifting out of tune is still an issue
+				//SteamHaptics_PlayNote(controller,currentChannel,NOTE_STOP,0);
 				eventNote = MidiFileNoteStartEvent_getNote(selectedEvent);
 				eventVel  = MidiFileNoteStartEvent_getVelocity(selectedEvent);
 			}
